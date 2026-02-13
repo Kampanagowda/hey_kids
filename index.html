@@ -62,7 +62,6 @@
         box-shadow: inset 0 0 60px rgba(255, 255, 255, 0.1);
       }
 
-      /* LOADING OVERLAY */
       #loadingOverlay {
         position: absolute;
         top: 0;
@@ -85,7 +84,6 @@
         border-radius: 50%;
         animation: spin 1s linear infinite;
       }
-
       @keyframes spin {
         0% {
           transform: rotate(0deg);
@@ -133,9 +131,9 @@
           0 0 20px #ff0000;
       }
 
-      #powerBtn.on {
-        background: radial-gradient(circle, #333 0%, #111 100%);
-        box-shadow: inset 0 2px 10px rgba(0, 0, 0, 1);
+      #powerBtn.on::before {
+        color: #33ff33;
+        text-shadow: 0 0 10px #00ff00;
       }
 
       .old-comp-btn {
@@ -202,7 +200,7 @@
         filter: none !important;
       }
       .moon-img {
-        transform: rotate(+90deg) scale(1.2);
+        transform: rotate(-90deg) scale(1.2);
         object-fit: contain !important;
         background: black;
       }
@@ -227,6 +225,33 @@
         filter: grayscale(100%) brightness(1.6) contrast(200%) !important;
       }
 
+      /* CRT OFF FLASH EFFECT */
+      .tv-off-anim {
+        animation: crt-flash 0.5s ease-out forwards;
+      }
+
+      @keyframes crt-flash {
+        0% {
+          transform: scale(1, 1);
+          filter: brightness(1);
+        }
+        20% {
+          transform: scale(1.1, 0.05);
+          filter: brightness(10) white;
+          background: #fff;
+        }
+        40% {
+          transform: scale(0.1, 0.05);
+          filter: brightness(20);
+          background: #fff;
+        }
+        100% {
+          transform: scale(0, 0);
+          filter: brightness(30);
+          opacity: 0;
+        }
+      }
+
       @keyframes glitch-anim {
         0% {
           transform: translate(4px, -4px);
@@ -242,7 +267,7 @@
       }
 
       .replay-btn {
-        margin-top: 60px;
+        margin-top: 30px;
         font-size: 24px;
         padding: 10px 30px;
         cursor: pointer !important;
@@ -310,8 +335,9 @@
               data-text="OUCH OUCH OUCH...HER LIPGLOSS ON HIM..OBVIOUSLY THEY HAVE KISSED...TWO BADDIESSS."
             ></div>
           </div>
+
           <div class="slide">
-            <video muted playsinline>
+            <video muted playsinline loop>
               <source src="dance.mp4" type="video/mp4" />
             </video>
             <div
@@ -321,14 +347,15 @@
           </div>
 
           <div class="slide">
-            <img src="MOON.jpeg" class="moon-img" />
+            <img src="moon.jpeg" class="moon-img" />
             <div
               class="caption"
-              data-text="SHE SLEPT ON HIS LAPS WATCHING TWWO MOONS TOGETHER..HOW SWEET!!"
+              data-text="SHE SLEPT ON HIS LAPS WATCHING TWO MOONS TOGETHER..HOW SWEET!! BUT HE IS BAD..HE DIDNT WANT TO SHARE THE TENT!!"
             ></div>
           </div>
+
           <div class="slide">
-            <video muted playsinline>
+            <video muted playsinline loop>
               <source src="flower.mp4" type="video/mp4" />
             </video>
             <div
@@ -336,6 +363,7 @@
               data-text="HAYEEE...HE WAS ALWAYS MUMMA'S FLOWER...KYA POOKIE LAG RHA H RE."
             ></div>
           </div>
+
           <div class="slide">
             <img src="temple.jpeg" />
             <div
@@ -350,10 +378,14 @@
               data-text="MUMMA ADDED COLORS TO DADDA'S LIFE...THEY WERE BEAUTIFUL...WORLD MANIFESTED THEM...LOVE YOU BABIESS.."
             ></div>
           </div>
+
           <div class="slide" style="justify-content: center">
-            <div class="caption" data-text="TO BE CONTINUED... ❤️"></div>
+            <div
+              class="caption"
+              data-text="TO BE CONTINUED... ❤️ NOW TURN OFF THE TV PLEASE, GO STUDY... PRESS THE GREEN BUTTON TO SHUT DOWN."
+            ></div>
             <button class="old-comp-btn replay-btn" onclick="location.reload()">
-              REPLAY
+              REPLAY STORY
             </button>
           </div>
         </div>
@@ -395,8 +427,9 @@
 
         let currentSlide = 0;
         let isStarted = false;
+        let storyFinished = false;
 
-        function typeWriter(element) {
+        function typeWriter(element, callback) {
           if (!element) return;
           const text = element.getAttribute("data-text");
           element.innerHTML = "";
@@ -406,6 +439,8 @@
               element.innerHTML += text.charAt(i);
               i++;
               setTimeout(typing, 50);
+            } else {
+              if (callback) setTimeout(callback, 2000);
             }
           }
           typing();
@@ -414,69 +449,64 @@
         typeWriter(slides[0].querySelector(".caption"));
 
         powerBtn.addEventListener("click", function () {
+          if (storyFinished) {
+            screen.classList.add("tv-off-anim");
+            music.pause();
+            staticSound.play();
+            powerBtn.classList.remove("on");
+            return;
+          }
+
           if (isStarted) return;
           isStarted = true;
           powerBtn.classList.add("on");
 
-          // 1. GLITCH AND STATIC START IMMEDIATELY
           staticSound.play().catch(() => {});
           screen.classList.add("glitch-active");
 
-          // 2. AFTER 800ms OF GLITCH, SHOW LOADING SCREEN
           setTimeout(() => {
             screen.classList.remove("glitch-active");
             loadingOverlay.style.display = "flex";
 
-            // 3. WAIT 3 SECONDS FOR BUFFERING
             setTimeout(() => {
               loadingOverlay.style.display = "none";
               music.play().catch(() => {});
-
-              // Move to second slide
-              slides[currentSlide].classList.remove("active");
-              currentSlide++;
-
-              const nextSlideEl = slides[currentSlide];
-              nextSlideEl.classList.add("active");
-              typeWriter(nextSlideEl.querySelector(".caption"));
-
-              const video = nextSlideEl.querySelector("video");
-              if (video) {
-                video.play();
-                video.onended = () => nextSlide();
-              } else {
-                setTimeout(nextSlide, 7000);
-              }
+              playNextSlide();
             }, 3000);
           }, 800);
         });
 
-        function nextSlide() {
-          if (currentSlide >= slides.length - 1) return;
-          const currentSlideEl = slides[currentSlide];
-          screen.classList.add("glitch-active");
+        function playNextSlide() {
+          slides[currentSlide].classList.remove("active");
+          currentSlide++;
 
+          if (currentSlide < slides.length) {
+            const nextSlideEl = slides[currentSlide];
+            nextSlideEl.classList.add("active");
+
+            const video = nextSlideEl.querySelector("video");
+            if (video) {
+              video.currentTime = 0;
+              video.play();
+            }
+
+            typeWriter(nextSlideEl.querySelector(".caption"), () => {
+              if (currentSlide < slides.length - 1) {
+                nextSlideTransition();
+              } else {
+                storyFinished = true;
+              }
+            });
+          }
+        }
+
+        function nextSlideTransition() {
+          screen.classList.add("glitch-active");
           setTimeout(() => {
             screen.classList.remove("glitch-active");
-            const currentVideo = currentSlideEl.querySelector("video");
+            const currentVideo = slides[currentSlide].querySelector("video");
             if (currentVideo) currentVideo.pause();
-            currentSlideEl.classList.remove("active");
-            currentSlide++;
-
-            if (currentSlide < slides.length) {
-              const nextSlideEl = slides[currentSlide];
-              nextSlideEl.classList.add("active");
-              typeWriter(nextSlideEl.querySelector(".caption"));
-              const video = nextSlideEl.querySelector("video");
-              if (video) {
-                video.play();
-                video.onended = () => nextSlide();
-              } else {
-                if (currentSlide < slides.length - 1) {
-                  setTimeout(nextSlide, 7000);
-                }
-              }
-            }
+            playNextSlide();
           }, 400);
         }
       });
