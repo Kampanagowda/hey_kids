@@ -1,0 +1,485 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Our Story 📺</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=VT323&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        margin: 0;
+        background: #020202;
+        overflow: hidden;
+        font-family: "VT323", monospace;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+      }
+
+      body::after {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          rgba(18, 16, 16, 0) 50%,
+          rgba(0, 0, 0, 0.2) 50%
+        );
+        background-size: 100% 4px;
+        pointer-events: none;
+        z-index: 10;
+      }
+
+      .tv-outer {
+        position: relative;
+        padding: 20px;
+        background: #2a2a2a;
+        border-radius: 40px;
+        border: 4px solid #1a1a1a;
+        box-shadow: 0 0 50px rgba(0, 0, 0, 1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .tv-frame {
+        position: relative;
+        width: 85vw;
+        max-width: 900px;
+        height: 72vh;
+        background: #000;
+        border-radius: 20px;
+        overflow: hidden;
+        border: 10px solid #111;
+        box-shadow: inset 0 0 60px rgba(255, 255, 255, 0.1);
+      }
+
+      /* LOADING OVERLAY */
+      #loadingOverlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+      }
+
+      .loader {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #333;
+        border-top: 5px solid #fff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .tv-controls {
+        width: 100%;
+        padding: 20px 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 40px;
+        background: #2a2a2a;
+      }
+
+      #powerBtn {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: radial-gradient(circle, #444 0%, #222 100%);
+        border: 3px solid #111;
+        cursor: pointer;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow:
+          0 4px 0 #000,
+          inset 0 1px 1px rgba(255, 255, 255, 0.2);
+        transition: all 0.2s;
+        outline: none;
+      }
+
+      #powerBtn::before {
+        content: "⏻";
+        color: #ff3333;
+        font-family: Arial, sans-serif;
+        font-size: 28px;
+        text-shadow:
+          0 0 10px #ff0000,
+          0 0 20px #ff0000;
+      }
+
+      #powerBtn.on {
+        background: radial-gradient(circle, #333 0%, #111 100%);
+        box-shadow: inset 0 2px 10px rgba(0, 0, 0, 1);
+      }
+
+      .old-comp-btn {
+        background: #999;
+        color: #000;
+        font-family: "VT323", monospace;
+        font-size: 16px;
+        padding: 4px 12px;
+        border-top: 2px solid #eee;
+        border-left: 2px solid #eee;
+        border-right: 2px solid #333;
+        border-bottom: 2px solid #333;
+      }
+
+      .knob-area {
+        display: flex;
+        gap: 10px;
+      }
+      .deco-label {
+        font-size: 11px;
+        color: #111;
+        text-align: center;
+        display: block;
+        margin-top: 3px;
+        font-weight: bold;
+      }
+
+      .screen-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+      .slide {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        opacity: 0;
+        visibility: hidden;
+      }
+      .slide.active {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .slide img,
+      .slide video {
+        width: 100%;
+        height: 85%;
+        object-fit: cover;
+        filter: grayscale(100%) contrast(130%);
+      }
+
+      .hands-img {
+        transform: rotate(+90deg) scale(1.2);
+        object-fit: contain !important;
+        background: black;
+      }
+      .couple-img {
+        transform: rotate(-360deg) scale(1.2);
+        object-fit: contain !important;
+        filter: none !important;
+      }
+      .moon-img {
+        transform: rotate(+90deg) scale(1.2);
+        object-fit: contain !important;
+        background: black;
+      }
+      .lipgloss-img {
+        transform: rotate(-3600deg) scale(1.2);
+        object-fit: contain !important;
+        background: black;
+      }
+
+      .caption {
+        width: 90%;
+        margin-top: 16px;
+        text-align: center;
+        font-size: 25px;
+        color: #fff;
+        text-shadow: 2px 2px 0px #000;
+        z-index: 5;
+      }
+
+      .glitch-active {
+        animation: glitch-anim 0.2s steps(2) infinite;
+        filter: grayscale(100%) brightness(1.6) contrast(200%) !important;
+      }
+
+      @keyframes glitch-anim {
+        0% {
+          transform: translate(4px, -4px);
+          clip-path: inset(10% 0 30% 0);
+        }
+        50% {
+          transform: translate(-5px, 5px);
+          clip-path: inset(25% 0 10% 0);
+        }
+        100% {
+          transform: translate(0, 0);
+        }
+      }
+
+      .replay-btn {
+        margin-top: 60px;
+        font-size: 24px;
+        padding: 10px 30px;
+        cursor: pointer !important;
+      }
+    </style>
+  </head>
+
+  <body>
+    <audio id="bgMusic" loop><source src="song.mp3" type="audio/mpeg" /></audio>
+    <audio id="staticSound"><source src="static.wav" type="audio/wav" /></audio>
+
+    <div class="tv-outer">
+      <div class="tv-frame">
+        <div id="loadingOverlay">
+          <div class="loader"></div>
+        </div>
+
+        <div class="screen-inner" id="screen">
+          <div class="slide active">
+            <img src="background.jpeg" />
+            <div
+              class="caption"
+              data-text="HEY KIDS...THIS IS YOUR MOM AND DAD...TURN ON THE TV TO WATCH OUR STORY!!!"
+            ></div>
+          </div>
+          <div class="slide">
+            <img src="waiting.jpeg" />
+            <div
+              class="caption"
+              data-text="UMM BEFORE THAT,LETS HAVE SOMETHING... UH! WAITER, ONE ALFI PLEASE."
+            ></div>
+          </div>
+          <div class="slide">
+            <img src="hotwheels.jpeg" />
+            <div
+              class="caption"
+              data-text="ALFI, I HAVE A SURPRISE..YOUR MOM GIFTED HIM HOTWHEELSSSS..YOHOOOO"
+            ></div>
+          </div>
+          <div class="slide">
+            <img src="airport.jpeg" />
+            <div
+              class="caption"
+              data-text="CHALO BHAIII...HE TOOK HER TO THE LAKE NEAR THE AIRPORT... AWW SOMETHING ELSE WAS TAKING OFF!!"
+            ></div>
+          </div>
+          <div class="slide">
+            <img src="sunflower.jpeg" />
+            <div
+              class="caption"
+              data-text="SHIT MAN..LOG PEENE K BAAD KYA KYA KARTE H YAAR!!!MUMMA WAS TOTALLY DRUNK..OMG"
+            ></div>
+          </div>
+          <div class="slide">
+            <img src="hands.jpeg" class="hands-img" />
+            <div
+              class="caption"
+              data-text="KUCH AUR TO PAKAD LIYA..ABH HAATH TO PAKADLO BITCH.."
+            ></div>
+          </div>
+          <div class="slide">
+            <img src="lipgloss.jpeg" class="lipgloss-img" />
+            <div
+              class="caption"
+              data-text="OUCH OUCH OUCH...HER LIPGLOSS ON HIM..OBVIOUSLY THEY HAVE KISSED...TWO BADDIESSS."
+            ></div>
+          </div>
+          <div class="slide">
+            <video muted playsinline>
+              <source src="dance.mp4" type="video/mp4" />
+            </video>
+            <div
+              class="caption"
+              data-text="AREY BC NAACHO! LOOK AT THE HICKEY MARKS ON MUMMA...ANIMAL DADDA!!!"
+            ></div>
+          </div>
+
+          <div class="slide">
+            <img src="MOON.jpeg" class="moon-img" />
+            <div
+              class="caption"
+              data-text="SHE SLEPT ON HIS LAPS WATCHING TWWO MOONS TOGETHER..HOW SWEET!! BUT PAPPA IS BAD, HE DIDNT WANT TO SHARE HIS TENT WITH HER..UMMM"
+            ></div>
+          </div>
+          <div class="slide">
+            <video muted playsinline>
+              <source src="flower.mp4" type="video/mp4" />
+            </video>
+            <div
+              class="caption"
+              data-text="HAYEEE...HE WAS ALWAYS MUMMA'S FLOWER...KYA POOKIE LAG RHA H RE."
+            ></div>
+          </div>
+          <div class="slide">
+            <img src="temple.jpeg" />
+            <div
+              class="caption"
+              data-text="MUMMA TOOK HIM TO A TEMPLE..SHE WORE THE BANGLES HE GIFTED HER."
+            ></div>
+          </div>
+          <div class="slide">
+            <img src="couple.jpeg" class="couple-img" />
+            <div
+              class="caption"
+              data-text="MUMMA ADDED COLORS TO DADDA'S LIFE...THEY WERE BEAUTIFUL...WORLD MANIFESTED THEM...LOVE YOU BABIESS.."
+            ></div>
+          </div>
+          <div class="slide" style="justify-content: center">
+            <div class="caption" data-text="TO BE CONTINUED... ❤️"></div>
+            <button class="old-comp-btn replay-btn" onclick="location.reload()">
+              REPLAY
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tv-controls">
+        <div class="knob-area">
+          <div>
+            <button class="old-comp-btn">CH+</button
+            ><span class="deco-label">MENU</span>
+          </div>
+          <div>
+            <button class="old-comp-btn">CH-</button
+            ><span class="deco-label">EXIT</span>
+          </div>
+        </div>
+        <button id="powerBtn"></button>
+        <div class="knob-area">
+          <div>
+            <button class="old-comp-btn">V+</button
+            ><span class="deco-label">BRIGHT</span>
+          </div>
+          <div>
+            <button class="old-comp-btn">V-</button
+            ><span class="deco-label">CONT</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const slides = document.querySelectorAll(".slide");
+        const music = document.getElementById("bgMusic");
+        const staticSound = document.getElementById("staticSound");
+        const powerBtn = document.getElementById("powerBtn");
+        const screen = document.getElementById("screen");
+        const loadingOverlay = document.getElementById("loadingOverlay");
+
+        let currentSlide = 0;
+        let isStarted = false;
+
+        function typeWriter(element) {
+          if (!element) return;
+          const text = element.getAttribute("data-text");
+          element.innerHTML = "";
+          let i = 0;
+          function typing() {
+            if (i < text.length) {
+              element.innerHTML += text.charAt(i);
+              i++;
+              setTimeout(typing, 50);
+            }
+          }
+          typing();
+        }
+
+        typeWriter(slides[0].querySelector(".caption"));
+
+        powerBtn.addEventListener("click", function () {
+          if (isStarted) return;
+          isStarted = true;
+          powerBtn.classList.add("on");
+
+          // 1. GLITCH AND STATIC START IMMEDIATELY
+          staticSound.play().catch(() => {});
+          screen.classList.add("glitch-active");
+
+          // 2. AFTER 800ms OF GLITCH, SHOW LOADING SCREEN
+          setTimeout(() => {
+            screen.classList.remove("glitch-active");
+            loadingOverlay.style.display = "flex";
+
+            // 3. WAIT 3 SECONDS FOR BUFFERING
+            setTimeout(() => {
+              loadingOverlay.style.display = "none";
+              music.play().catch(() => {});
+
+              // Move to second slide
+              slides[currentSlide].classList.remove("active");
+              currentSlide++;
+
+              const nextSlideEl = slides[currentSlide];
+              nextSlideEl.classList.add("active");
+              typeWriter(nextSlideEl.querySelector(".caption"));
+
+              const video = nextSlideEl.querySelector("video");
+              if (video) {
+                video.play();
+                video.onended = () => nextSlide();
+              } else {
+                setTimeout(nextSlide, 7000);
+              }
+            }, 3000);
+          }, 800);
+        });
+
+        function nextSlide() {
+          if (currentSlide >= slides.length - 1) return;
+          const currentSlideEl = slides[currentSlide];
+          screen.classList.add("glitch-active");
+
+          setTimeout(() => {
+            screen.classList.remove("glitch-active");
+            const currentVideo = currentSlideEl.querySelector("video");
+            if (currentVideo) currentVideo.pause();
+            currentSlideEl.classList.remove("active");
+            currentSlide++;
+
+            if (currentSlide < slides.length) {
+              const nextSlideEl = slides[currentSlide];
+              nextSlideEl.classList.add("active");
+              typeWriter(nextSlideEl.querySelector(".caption"));
+              const video = nextSlideEl.querySelector("video");
+              if (video) {
+                video.play();
+                video.onended = () => nextSlide();
+              } else {
+                if (currentSlide < slides.length - 1) {
+                  setTimeout(nextSlide, 7000);
+                }
+              }
+            }
+          }, 400);
+        }
+      });
+    </script>
+  </body>
+</html>
